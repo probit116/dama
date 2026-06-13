@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>打码量控制配置</title>
+  <style>
+    :root {
+      --bg: #09111c;
+      --panel: #101a28;
+      --panel-soft: #162235;
+      --line: rgba(148, 163, 184, 0.14);
+      --text: #eef5ff;
+      --muted: #8ea4c1;
+      --primary: #56a7ff;
+      --danger: #ff5d6c;
+      --ok: #2ed3a1;
+      --warn: #f3c75a;
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+      --font-display: "STZhongsong", "Microsoft YaHei", sans-serif;
+      --font-body: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: var(--font-body);
+      background:
+        radial-gradient(circle at top left, rgba(86, 167, 255, 0.18), transparent 26%),
+        radial-gradient(circle at 86% 8%, rgba(243, 199, 90, 0.14), transparent 24%),
+        linear-gradient(180deg, #07101a 0%, #09111c 45%, #08111a 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: linear-gradient(180deg, rgba(255,255,255,0.7), transparent 90%);
+    }
+
+    .app-shell {
+      width: min(1480px, calc(100vw - 40px));
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr);
+      gap: 20px;
+      position: relative;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 20px;
+      height: calc(100vh - 40px);
+      padding: 22px;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(16, 26, 40, 0.96), rgba(9, 17, 28, 0.96));
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(86, 167, 255, 0.12);
+      color: #a6cdff;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    .sidebar h1 {
+      margin: 16px 0 10px;
+      font-family: var(--font-display);
+      font-size: 28px;
+      line-height: 1.35;
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      padding: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: var(--radius-lg);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .nav-btn:hover,
+    .nav-btn.active {
+      border-color: rgba(86, 167, 255, 0.52);
+      background: linear-gradient(135deg, rgba(86, 167, 255, 0.2), rgba(19, 29, 42, 0.92));
+      transform: translateY(-1px);
+    }
+
+    .nav-btn strong,
+    .nav-btn span { display: block; }
+    .nav-btn strong { font-size: 17px; margin-bottom: 8px; }
+    .nav-btn span { font-size: 12px; color: var(--muted); line-height: 1.7; }
+    .nav-btn.active span { color: #dceaff; }
+
+    .content {
+      display: grid;
+      gap: 20px;
+      align-content: start;
+      min-height: calc(100vh - 40px);
+    }
+
+    .hero,
+    .overview-bar,
+    .section-card {
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(16, 26, 40, 0.96), rgba(10, 18, 30, 0.96));
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 26px 28px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 34px;
+      line-height: 1.35;
+    }
+
+    .overview-bar {
+      position: sticky;
+      top: 20px;
+      z-index: 8;
+      padding: 18px 20px;
+    }
+
+    .overview-bar__head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .overview-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-display);
+      font-size: 18px;
+    }
+
+    .pill-row {
+      display: inline-flex;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .pill {
+      border: 0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.15s ease;
+    }
+
+    .pill.active {
+      color: #0c1624;
+      background: rgba(86, 167, 255, 0.92);
+      font-weight: 700;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric-card {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      min-height: 86px;
+    }
+
+    .metric-card small { display: block; color: var(--muted); }
+    .metric-card strong { display: block; margin-top: 10px; font-size: 20px; }
+    .metric-card span { display: block; margin-top: 8px; font-size: 12px; color: #dbe7f3; }
+
+    .section-card {
+      padding: 18px 18px 16px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+      margin-bottom: 14px;
+    }
+
+    .section-head h3 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 20px;
+    }
+
+    .action-btn {
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .action-btn:hover { border-color: rgba(86, 167, 255, 0.5); background: rgba(86, 167, 255, 0.12); }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      padding: 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      text-align: left;
+      font-size: 13px;
+      vertical-align: top;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    th { color: var(--muted); font-weight: 600; background: rgba(255,255,255,0.02); }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.06);
+      font-size: 12px;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 999px; }
+    .dot.ok { background: var(--ok); }
+    .dot.warn { background: var(--warn); }
+    .dot.danger { background: var(--danger); }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1.2fr 1.2fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      outline: none;
+    }
+
+    .field input::placeholder { color: rgba(142, 164, 193, 0.8); }
+
+    .field select option {
+      background: #0f1a28;
+      color: var(--text);
+    }
+
+    .filter-actions {
+      display: inline-flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .ghost-btn {
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(255,255,255,0.02);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .ghost-btn.primary {
+      border-color: rgba(86, 167, 255, 0.6);
+      background: rgba(86, 167, 255, 0.16);
+    }
+
+    .view-page { display: none; }
+    .view-page.active { display: grid; gap: 20px; align-content: start; }
+
+    .modal-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      z-index: 40;
+    }
+    .modal-mask.active { display: flex; }
+
+    .modal {
+      width: min(840px, 100%);
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: linear-gradient(180deg, rgba(16, 26, 40, 0.98), rgba(10, 18, 30, 0.98));
+      box-shadow: var(--shadow);
+      padding: 20px 22px 18px;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .modal-head h4 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 20px;
+    }
+    .close-btn {
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .hint {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .error {
+      margin-top: 10px;
+      color: #ffd1d6;
+      background: rgba(255, 93, 108, 0.12);
+      border: 1px solid rgba(255, 93, 108, 0.24);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 12px;
+      display: none;
+    }
+    .error.active { display: block; }
+
+    .spec-toggle {
+      position: fixed;
+      right: 16px;
+      top: 18px;
+      z-index: 45;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .spec-sidebar {
+      position: fixed;
+      right: 16px;
+      top: 64px;
+      width: min(420px, calc(100vw - 32px));
+      height: calc(100vh - 88px);
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: linear-gradient(180deg, rgba(16, 26, 40, 0.98), rgba(10, 18, 30, 0.98));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transform: translateX(calc(100% + 24px));
+      transition: transform 0.18s ease;
+      z-index: 44;
+    }
+
+    .spec-sidebar.active { transform: translateX(0); }
+
+    .spec-head {
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .spec-head strong { font-family: var(--font-display); font-size: 16px; }
+
+    .spec-body {
+      height: calc(100% - 56px);
+      overflow: auto;
+      padding: 16px 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .spec-card {
+      padding: 14px 14px;
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .spec-card strong { display: block; font-size: 13px; margin-bottom: 8px; }
+    .spec-card span { display: block; color: var(--muted); font-size: 12px; line-height: 1.8; }
+
+    @media (max-width: 1080px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { position: relative; height: auto; }
+      .overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <button class="spec-toggle" id="specToggleBtn">展开口径定义文档</button>
+
+  <aside class="spec-sidebar" id="specSidebar">
+    <div class="spec-head">
+      <strong>口径定义文档</strong>
+      <button class="close-btn" id="specCloseBtn">收回口径</button>
+    </div>
+    <div class="spec-body" id="specBody"></div>
+  </aside>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="eyebrow">TURNOVER CONTROL</div>
+      <h1>打码量控制配置</h1>
+      <div class="nav-list" id="navList">
+        <button class="nav-btn active" data-page="config">
+          <strong>页面一：规则配置</strong>
+          <span>配置打码量倍数与可计入交易范围</span>
+        </button>
+        <button class="nav-btn" data-page="users">
+          <strong>页面二：用户打码量列表</strong>
+          <span>锁定金额与未完成额列表</span>
+        </button>
+        <button class="nav-btn" data-page="audit">
+          <strong>页面三：配置变更记录</strong>
+          <span>规则调整审计留痕</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <h2>打码量控制</h2>
+      </section>
+
+      <section class="overview-bar">
+        <div class="overview-bar__head">
+          <div class="overview-title">数据概览</div>
+          <div class="pill-row" id="dimPills">
+            <button class="pill active" data-dim="day">日</button>
+            <button class="pill" data-dim="week">周</button>
+            <button class="pill" data-dim="month">月</button>
+            <button class="pill" data-dim="all">总</button>
+          </div>
+        </div>
+        <div class="overview-grid" id="overviewGrid"></div>
+      </section>
+
+      <section class="view-page active" id="page-config">
+        <section class="section-card">
+          <div class="section-head">
+            <h3>规则配置</h3>
+            <button class="action-btn" id="openConfigBtn">配置</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 28%;">配置项</th>
+                <th>当前配置</th>
+              </tr>
+            </thead>
+            <tbody id="configTableBody"></tbody>
+          </table>
+        </section>
+
+        <section class="section-card">
+          <div class="section-head">
+            <h3>口径示例</h3>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 18%;">时间</th>
+                <th style="width: 18%;">事件</th>
+                <th style="width: 16%;">金额</th>
+                <th>口径结果（示例）</th>
+              </tr>
+            </thead>
+            <tbody id="exampleTableBody"></tbody>
+          </table>
+        </section>
+      </section>
+
+      <section class="view-page" id="page-users">
+        <section class="section-card">
+          <div class="section-head">
+            <h3>用户打码量列表</h3>
+          </div>
+          <div class="filters">
+            <div class="field">
+              <label>用户 ID</label>
+              <input id="filterUserId" placeholder="输入用户 ID" />
+            </div>
+            <div class="field">
+              <label>状态</label>
+              <select id="filterStatus">
+                <option value="all">全部</option>
+                <option value="locked">未完成（锁定中）</option>
+                <option value="ok">已完成</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>开始时间（最后更新时间）</label>
+              <input id="filterStartAt" placeholder="YYYY-MM-DD HH:MM:SS" />
+            </div>
+            <div class="field">
+              <label>结束时间（最后更新时间）</label>
+              <input id="filterEndAt" placeholder="YYYY-MM-DD HH:MM:SS" />
+            </div>
+          </div>
+          <div class="filter-actions">
+            <button class="ghost-btn primary" id="applyUserFilter">应用</button>
+            <button class="ghost-btn" id="resetUserFilter">重置</button>
+          </div>
+          <div style="height: 14px;"></div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 12%;">用户 ID</th>
+                <th style="width: 14%;">状态</th>
+                <th style="width: 14%;">锁定金额</th>
+                <th style="width: 14%;">打码量未完成额</th>
+                <th style="width: 14%;">本轮起始时间</th>
+                <th style="width: 16%;">最后更新时间</th>
+                <th style="width: 16%;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+          </table>
+        </section>
+      </section>
+
+      <section class="view-page" id="page-audit">
+        <section class="section-card">
+          <div class="section-head">
+            <h3>配置变更记录</h3>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 20%;">变更时间</th>
+                <th style="width: 14%;">操作人</th>
+                <th style="width: 20%;">变更项</th>
+                <th style="width: 23%;">变更前</th>
+                <th style="width: 23%;">变更后</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody"></tbody>
+          </table>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-mask" id="configModalMask">
+    <div class="modal">
+      <div class="modal-head">
+        <h4>规则配置</h4>
+        <button class="close-btn" data-close="config">关闭</button>
+      </div>
+      <div class="modal-grid">
+        <div class="field">
+          <label>打码量控制倍数</label>
+          <input id="cfgMultiplier" type="number" min="1" step="1" />
+        </div>
+        <div class="field">
+          <label>计入打码的交易范围</label>
+          <select id="cfgScopePreset">
+            <option value="futures_mini">合约 + 迷你合约</option>
+            <option value="futures_mini_predict">合约 + 迷你合约 + 预测</option>
+            <option value="predict_only">仅预测</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>触发来源</label>
+          <select id="cfgCreditSources">
+            <option value="all">转入 / 充值 / 赠金</option>
+            <option value="deposit_bonus">充值 / 赠金</option>
+            <option value="transfer_only">仅转入</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>清零触发</label>
+          <select id="cfgResetTrigger">
+            <option value="withdraw_or_credit">转出 或 新增入账</option>
+            <option value="withdraw_only">仅转出</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint">确认前需要通过谷歌验证码。</div>
+      <div class="error" id="configError"></div>
+      <div class="modal-actions">
+        <button class="ghost-btn" id="googleVerifyBtn">谷歌验证码</button>
+        <button class="ghost-btn" data-close="config">取消</button>
+        <button class="ghost-btn primary" id="saveConfigBtn">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="userDetailMask">
+    <div class="modal">
+      <div class="modal-head">
+        <h4>用户打码量详情</h4>
+        <button class="close-btn" data-close="detail">关闭</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 22%;">字段</th>
+            <th>值</th>
+          </tr>
+        </thead>
+        <tbody id="detailTableBody"></tbody>
+      </table>
+      <div style="height: 14px;"></div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 18%;">时间</th>
+            <th style="width: 16%;">事件</th>
+            <th style="width: 14%;">金额</th>
+            <th style="width: 16%;">本轮要求变化</th>
+            <th>说明</th>
+          </tr>
+        </thead>
+        <tbody id="detailEventBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      dim: "day",
+      specOpen: false,
+      config: {
+        multiplier: 2,
+        scopePreset: "futures_mini",
+        creditSources: "all",
+        resetTrigger: "withdraw_or_credit"
+      },
+      googleVerified: false,
+      users: [
+        {
+          userId: "U100321",
+          roundStartAt: "2026-06-12 09:12:00",
+          lastUpdatedAt: "2026-06-12 10:42:18",
+          balanceU: "101",
+          lockedU: "101",
+          requiredTurnoverU: "2",
+          completedTurnoverU: "0",
+          unfinishedTurnoverU: "2",
+          status: "locked",
+          events: [
+            { at: "2026-06-12 09:12:00", type: "充值", amount: "100", delta: "+200", note: "首次入账，打码量 = 100 × 2 = 200U。" },
+            { at: "2026-06-12 10:10:00", type: "交易", amount: "200", delta: "0", note: "交易量达到 200U，已满足打码量，但未发生转出，未触发清零。" },
+            { at: "2026-06-12 10:42:18", type: "赠金", amount: "1", delta: "清零后 +2", note: "入账时判断前一轮已满足，清零后新增打码量 1 × 2 = 2U，余额 101U 全部锁定，未满足前不可转出。" }
+          ]
+        },
+        {
+          userId: "U100417",
+          roundStartAt: "2026-06-11 22:05:00",
+          lastUpdatedAt: "2026-06-12 08:22:09",
+          balanceU: "56",
+          lockedU: "56",
+          requiredTurnoverU: "202",
+          completedTurnoverU: "150",
+          unfinishedTurnoverU: "52",
+          status: "locked",
+          events: [
+            { at: "2026-06-11 22:05:00", type: "转入", amount: "100", delta: "+200", note: "首次入账，打码量 = 100 × 2 = 200U。" },
+            { at: "2026-06-12 03:10:00", type: "交易", amount: "150", delta: "0", note: "已交易 150U，未满足 200U 要求。" },
+            { at: "2026-06-12 08:22:09", type: "充值", amount: "1", delta: "+2", note: "入账时判断前一轮未满足，直接累加打码量 1 × 2 = 2U，总要求变为 202U。" }
+          ]
+        },
+        {
+          userId: "U100728",
+          roundStartAt: "2026-06-12 07:30:00",
+          lastUpdatedAt: "2026-06-12 10:33:50",
+          balanceU: "18",
+          lockedU: "0",
+          requiredTurnoverU: "200",
+          completedTurnoverU: "200",
+          unfinishedTurnoverU: "0",
+          status: "ok",
+          events: [
+            { at: "2026-06-12 07:30:00", type: "充值", amount: "100", delta: "+200", note: "首次入账，打码量 = 100 × 2 = 200U。" },
+            { at: "2026-06-12 10:30:00", type: "交易", amount: "200", delta: "0", note: "交易量达到 200U，打码量满足，未完成额为 0，可转出。" },
+            { at: "2026-06-12 10:33:50", type: "转出", amount: "1", delta: "清零", note: "发生转出触发清零，打码量与交易量计数归零，后续无新增入账时可多次转出剩余余额。" }
+          ]
+        }
+      ],
+      audit: [
+        { at: "2026-06-12 09:00:00", by: "admin", item: "打码量控制倍数", from: "2", to: "2" },
+        { at: "2026-06-12 09:00:00", by: "admin", item: "计入交易范围", from: "合约 + 迷你合约", to: "合约 + 迷你合约" },
+        { at: "2026-06-12 09:00:00", by: "admin", item: "清零触发", from: "转出 或 新增入账", to: "转出 或 新增入账" }
+      ]
+    };
+
+    const els = {
+      navList: document.getElementById("navList"),
+      pages: {
+        config: document.getElementById("page-config"),
+        users: document.getElementById("page-users"),
+        audit: document.getElementById("page-audit")
+      },
+      dimPills: document.getElementById("dimPills"),
+      overviewGrid: document.getElementById("overviewGrid"),
+      configTableBody: document.getElementById("configTableBody"),
+      exampleTableBody: document.getElementById("exampleTableBody"),
+      usersTableBody: document.getElementById("usersTableBody"),
+      auditTableBody: document.getElementById("auditTableBody"),
+      openConfigBtn: document.getElementById("openConfigBtn"),
+      configModalMask: document.getElementById("configModalMask"),
+      cfgMultiplier: document.getElementById("cfgMultiplier"),
+      cfgScopePreset: document.getElementById("cfgScopePreset"),
+      cfgCreditSources: document.getElementById("cfgCreditSources"),
+      cfgResetTrigger: document.getElementById("cfgResetTrigger"),
+      googleVerifyBtn: document.getElementById("googleVerifyBtn"),
+      saveConfigBtn: document.getElementById("saveConfigBtn"),
+      configError: document.getElementById("configError"),
+      userDetailMask: document.getElementById("userDetailMask"),
+      detailTableBody: document.getElementById("detailTableBody"),
+      detailEventBody: document.getElementById("detailEventBody"),
+      specToggleBtn: document.getElementById("specToggleBtn"),
+      specSidebar: document.getElementById("specSidebar"),
+      specCloseBtn: document.getElementById("specCloseBtn"),
+      specBody: document.getElementById("specBody"),
+      filterUserId: document.getElementById("filterUserId"),
+      filterStatus: document.getElementById("filterStatus"),
+      filterStartAt: document.getElementById("filterStartAt"),
+      filterEndAt: document.getElementById("filterEndAt"),
+      applyUserFilter: document.getElementById("applyUserFilter"),
+      resetUserFilter: document.getElementById("resetUserFilter")
+    };
+
+    function fmtNum(n) {
+      const s = String(n);
+      if (!s.includes(".")) return s;
+      return s.replace(/\.?0+$/, "");
+    }
+
+    function scopeLabel(preset) {
+      if (preset === "futures_mini") return "合约 + 迷你合约";
+      if (preset === "futures_mini_predict") return "合约 + 迷你合约 + 预测";
+      if (preset === "predict_only") return "仅预测";
+      return preset;
+    }
+
+    function sourceLabel(v) {
+      if (v === "all") return "转入 / 充值 / 赠金";
+      if (v === "deposit_bonus") return "充值 / 赠金";
+      if (v === "transfer_only") return "仅转入";
+      return v;
+    }
+
+    function resetLabel(v) {
+      if (v === "withdraw_or_credit") return "转出 或 新增入账";
+      if (v === "withdraw_only") return "仅转出";
+      return v;
+    }
+
+    function renderOverview() {
+      const users = state.users;
+      const lockedUsers = users.filter(u => u.unfinishedTurnoverU !== "0");
+      const sumLocked = lockedUsers.reduce((acc, u) => acc + Number(u.lockedU), 0);
+      const sumUnfinished = lockedUsers.reduce((acc, u) => acc + Number(u.unfinishedTurnoverU), 0);
+
+      const cards = [
+        { title: "控制倍数", strong: `${state.config.multiplier} 倍`, sub: `可配置` },
+        { title: "计入交易范围", strong: scopeLabel(state.config.scopePreset), sub: `可配置` },
+        { title: "锁定用户数", strong: `${lockedUsers.length}`, sub: `未完成打码量` },
+        { title: "锁定金额 / 未完成额", strong: `${fmtNum(sumLocked)} U`, sub: `${fmtNum(sumUnfinished)} U` }
+      ];
+
+      els.overviewGrid.innerHTML = cards.map(c => {
+        return `<div class="metric-card"><small>${c.title}</small><strong>${c.strong}</strong><span>${c.sub}</span></div>`;
+      }).join("");
+    }
+
+    function renderConfigTable() {
+      const rows = [
+        { k: "打码量控制倍数", v: `${state.config.multiplier} 倍（后台可配置）` },
+        { k: "计入打码的交易范围", v: `${scopeLabel(state.config.scopePreset)}（可配置：合约 / 迷你合约 / 预测）` },
+        { k: "触发来源", v: `${sourceLabel(state.config.creditSources)}（可配置）` },
+        { k: "清零触发", v: `${resetLabel(state.config.resetTrigger)}（可配置）` },
+        { k: "两项核心展示参数", v: "锁定金额、打码量未完成额" }
+      ];
+
+      els.configTableBody.innerHTML = rows.map(r => `<tr><td>${r.k}</td><td>${r.v}</td></tr>`).join("");
+    }
+
+    function renderExample() {
+      const m = state.config.multiplier;
+      const rows = [
+        { at: "T1", type: "转入 / 充值 / 赠金", amt: "100U", out: `新增打码量 = 100 × ${m} = 200U。` },
+        { at: "T2", type: "交易", amt: "200U", out: "交易量达到要求，未完成额为 0；未发生转出，不触发清零。"},
+        { at: "T3", type: "转入 / 赠金", amt: "1U", out: `入账时判断前一轮已满足：清零后新增打码量 = 1 × ${m} = 2U；余额全部锁定，未满足前不可转出。` },
+        { at: "T4", type: "交易", amt: "2U", out: "未完成额变为 0。"},
+        { at: "T5", type: "转出", amt: "1U", out: "转出触发清零：打码量归零、交易量计数归零；未再次入账前，剩余余额可分多次转出。"}
+      ];
+
+      els.exampleTableBody.innerHTML = rows.map(r => `<tr><td>${r.at}</td><td>${r.type}</td><td>${r.amt}</td><td>${r.out}</td></tr>`).join("");
+    }
+
+    function statusTag(u) {
+      if (u.unfinishedTurnoverU === "0") return `<span class="tag"><span class="dot ok"></span>已完成</span>`;
+      return `<span class="tag"><span class="dot danger"></span>锁定中</span>`;
+    }
+
+    function renderUsers(list = state.users) {
+      els.usersTableBody.innerHTML = list.map(u => {
+        return `<tr>
+          <td>${u.userId}</td>
+          <td>${statusTag(u)}</td>
+          <td>${fmtNum(u.lockedU)} U</td>
+          <td>${fmtNum(u.unfinishedTurnoverU)} U</td>
+          <td>${u.roundStartAt}</td>
+          <td>${u.lastUpdatedAt}</td>
+          <td><button class="action-btn" data-action="detail" data-user="${u.userId}">查看详情</button></td>
+        </tr>`;
+      }).join("");
+    }
+
+    function renderAudit() {
+      els.auditTableBody.innerHTML = state.audit.map(a => {
+        return `<tr>
+          <td>${a.at}</td>
+          <td>${a.by}</td>
+          <td>${a.item}</td>
+          <td>${a.from}</td>
+          <td>${a.to}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function buildSpec(pageKey) {
+      const base = [
+        { t: "全局-展示规则", d: "计数字段统一展示为整数。金额字段最多支持 8 位小数；若小数末尾为 0 则截取显示有效位，若小数点后全部为 0 则仅展示整数部分。" },
+        { t: "全局-计入交易范围", d: "交易量仅统计配置中勾选的产品范围（合约 / 迷你合约 / 预测）。" },
+        { t: "核心参数-锁定金额", d: "用户未完成打码量期间不可自由转出的余额累积；当打码量未完成额 > 0 时，锁定金额 = 用户当前可转出资产余额，可转出余额为 0。" },
+        { t: "核心参数-打码量未完成额", d: "用户未完成的打码量（即需要完成的交易额）。计算为 max(0, 本轮打码量要求 - 本轮累计交易量)。" },
+        { t: "清零与累加规则", d: "新增入账（转入 / 充值 / 赠金）入账时判断上一轮是否已满足：若已满足则清零后重算本次新增打码量；若未满足则在原要求上累加新增打码量。转出发生时若未完成额 > 0 则禁止转出；若未完成额 = 0 则允许转出，且转出触发清零（打码量与交易量计数归零）。" }
+      ];
+
+      if (pageKey === "config") {
+        const list = [
+          { t: "数据概览-控制倍数", d: "显示当前打码量控制倍数（后台可配置）。" },
+          { t: "数据概览-锁定用户数", d: "统计打码量未完成额 > 0 的用户数。" },
+          { t: "数据概览-锁定金额 / 未完成额", d: "锁定金额与打码量未完成额分别求和后展示；展示单位为 U。" },
+          { t: "规则配置-配置弹窗", d: "输入打码量控制倍数、选择计入交易范围、选择触发来源、选择清零触发；点击谷歌验证码后才允许确认保存。" }
+        ];
+        return [...base, ...list];
+      }
+
+      if (pageKey === "users") {
+        const list = [
+          { t: "列表字段", d: "用户 ID、状态、锁定金额、打码量未完成额、本轮起始时间、最后更新时间。" },
+          { t: "列表排序", d: "第一排序按最后更新时间倒序；第二排序按用户 ID 倒序。" },
+          { t: "筛选条件", d: "支持按用户 ID、状态、最后更新时间起始与结束时间筛选。" },
+          { t: "详情弹窗", d: "展示本轮打码量要求、已完成交易量、未完成额、锁定金额，以及入账/交易/转出事件明细。" },
+          { t: "详情弹窗-换行规则", d: "详情字段值单行展示超过 24 个中文字符时自动换行；连续英文/数字/地址类无空格内容超过单行宽度时按任意位置断开换行。" }
+        ];
+        return [...base, ...list];
+      }
+
+      if (pageKey === "audit") {
+        const list = [
+          { t: "变更记录字段", d: "至少包含变更时间、操作人、变更项、变更前值、变更后值。" },
+          { t: "变更记录-换行规则", d: "单行展示最多显示 24 个中文字符；超过自动换行。连续英文/数字/地址类无空格内容按任意位置断开换行。" }
+        ];
+        return [...base, ...list];
+      }
+
+      return base;
+    }
+
+    function renderSpec(pageKey) {
+      const cards = buildSpec(pageKey);
+      els.specBody.innerHTML = cards.map(c => `<div class="spec-card"><strong>${c.t}</strong><span>${c.d}</span></div>`).join("");
+    }
+
+    function activatePage(key) {
+      Object.entries(els.pages).forEach(([k, el]) => el.classList.toggle("active", k === key));
+      document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.page === key));
+      renderSpec(key);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function openConfigModal() {
+      state.googleVerified = false;
+      els.googleVerifyBtn.textContent = "谷歌验证码";
+      els.configError.classList.remove("active");
+      els.cfgMultiplier.value = state.config.multiplier;
+      els.cfgScopePreset.value = state.config.scopePreset;
+      els.cfgCreditSources.value = state.config.creditSources;
+      els.cfgResetTrigger.value = state.config.resetTrigger;
+      els.configModalMask.classList.add("active");
+    }
+
+    function closeModal(which) {
+      if (which === "config") els.configModalMask.classList.remove("active");
+      if (which === "detail") els.userDetailMask.classList.remove("active");
+    }
+
+    function showConfigError(msg) {
+      els.configError.textContent = msg;
+      els.configError.classList.add("active");
+    }
+
+    function saveConfig() {
+      els.configError.classList.remove("active");
+      const m = Number(els.cfgMultiplier.value);
+      if (!Number.isInteger(m) || m <= 0) {
+        showConfigError("打码量控制倍数必须为正整数。");
+        return;
+      }
+      if (!state.googleVerified) {
+        showConfigError("请先通过谷歌验证码。");
+        return;
+      }
+      const before = { ...state.config };
+      state.config.multiplier = m;
+      state.config.scopePreset = els.cfgScopePreset.value;
+      state.config.creditSources = els.cfgCreditSources.value;
+      state.config.resetTrigger = els.cfgResetTrigger.value;
+
+      state.audit.unshift(
+        { at: nowStr(), by: "admin", item: "打码量控制倍数", from: String(before.multiplier), to: String(state.config.multiplier) },
+        { at: nowStr(), by: "admin", item: "计入交易范围", from: scopeLabel(before.scopePreset), to: scopeLabel(state.config.scopePreset) },
+        { at: nowStr(), by: "admin", item: "触发来源", from: sourceLabel(before.creditSources), to: sourceLabel(state.config.creditSources) },
+        { at: nowStr(), by: "admin", item: "清零触发", from: resetLabel(before.resetTrigger), to: resetLabel(state.config.resetTrigger) }
+      );
+
+      renderOverview();
+      renderConfigTable();
+      renderExample();
+      renderAudit();
+      closeModal("config");
+    }
+
+    function nowStr() {
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    function openUserDetail(userId) {
+      const user = state.users.find(u => u.userId === userId);
+      if (!user) return;
+
+      const detailRows = [
+        ["用户 ID", user.userId],
+        ["本轮起始时间", user.roundStartAt],
+        ["最后更新时间", user.lastUpdatedAt],
+        ["当前余额", `${fmtNum(user.balanceU)} U`],
+        ["锁定金额", `${fmtNum(user.lockedU)} U`],
+        ["本轮打码量要求", `${fmtNum(user.requiredTurnoverU)} U`],
+        ["本轮累计交易量", `${fmtNum(user.completedTurnoverU)} U`],
+        ["打码量未完成额", `${fmtNum(user.unfinishedTurnoverU)} U`],
+        ["计入交易范围", scopeLabel(state.config.scopePreset)],
+        ["打码量控制倍数", `${state.config.multiplier} 倍`]
+      ];
+
+      els.detailTableBody.innerHTML = detailRows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("");
+      els.detailEventBody.innerHTML = user.events.map(e => {
+        return `<tr>
+          <td>${e.at}</td>
+          <td>${e.type}</td>
+          <td>${fmtNum(e.amount)} U</td>
+          <td>${e.delta}</td>
+          <td>${e.note}</td>
+        </tr>`;
+      }).join("");
+      els.userDetailMask.classList.add("active");
+    }
+
+    function applyUserFilters() {
+      const uid = els.filterUserId.value.trim();
+      const status = els.filterStatus.value;
+      const startAt = els.filterStartAt.value.trim();
+      const endAt = els.filterEndAt.value.trim();
+      const list = state.users.filter(u => {
+        if (uid && !u.userId.includes(uid)) return false;
+        if (status === "locked" && u.unfinishedTurnoverU === "0") return false;
+        if (status === "ok" && u.unfinishedTurnoverU !== "0") return false;
+        if (startAt && u.lastUpdatedAt < startAt) return false;
+        if (endAt && u.lastUpdatedAt > endAt) return false;
+        return true;
+      });
+
+      list.sort((a, b) => {
+        if (a.lastUpdatedAt !== b.lastUpdatedAt) return a.lastUpdatedAt < b.lastUpdatedAt ? 1 : -1;
+        return a.userId < b.userId ? 1 : -1;
+      });
+
+      renderUsers(list);
+    }
+
+    function resetUserFilters() {
+      els.filterUserId.value = "";
+      els.filterStatus.value = "all";
+      els.filterStartAt.value = "";
+      els.filterEndAt.value = "";
+      renderUsers(state.users);
+    }
+
+    function bindEvents() {
+      els.navList.addEventListener("click", (e) => {
+        const btn = e.target.closest(".nav-btn");
+        if (!btn) return;
+        activatePage(btn.dataset.page);
+      });
+
+      els.dimPills.addEventListener("click", (e) => {
+        const btn = e.target.closest(".pill");
+        if (!btn) return;
+        state.dim = btn.dataset.dim;
+        document.querySelectorAll(".pill").forEach(p => p.classList.toggle("active", p.dataset.dim === state.dim));
+      });
+
+      els.openConfigBtn.addEventListener("click", openConfigModal);
+
+      document.body.addEventListener("click", (e) => {
+        const close = e.target.closest("[data-close]");
+        if (close) {
+          closeModal(close.dataset.close);
+          return;
+        }
+        const action = e.target.closest("[data-action]");
+        if (action?.dataset.action === "detail") {
+          openUserDetail(action.dataset.user);
+        }
+      });
+
+      els.configModalMask.addEventListener("click", (e) => {
+        if (e.target === els.configModalMask) closeModal("config");
+      });
+      els.userDetailMask.addEventListener("click", (e) => {
+        if (e.target === els.userDetailMask) closeModal("detail");
+      });
+
+      els.googleVerifyBtn.addEventListener("click", () => {
+        state.googleVerified = true;
+        els.googleVerifyBtn.textContent = "已验证";
+        els.configError.classList.remove("active");
+      });
+
+      els.saveConfigBtn.addEventListener("click", saveConfig);
+
+      els.applyUserFilter.addEventListener("click", applyUserFilters);
+      els.resetUserFilter.addEventListener("click", resetUserFilters);
+
+      els.specToggleBtn.addEventListener("click", () => {
+        state.specOpen = true;
+        els.specSidebar.classList.add("active");
+        els.specToggleBtn.style.display = "none";
+      });
+      els.specCloseBtn.addEventListener("click", () => {
+        state.specOpen = false;
+        els.specSidebar.classList.remove("active");
+        els.specToggleBtn.style.display = "block";
+      });
+    }
+
+    function init() {
+      renderOverview();
+      renderConfigTable();
+      renderExample();
+      renderUsers();
+      renderAudit();
+      renderSpec("config");
+      bindEvents();
+    }
+
+    init();
+  </script>
+</body>
+</html>
+
