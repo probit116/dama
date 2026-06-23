@@ -387,6 +387,32 @@
       line-height: 1.8;
     }
 
+    .example-guide {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .example-guide__card {
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(86, 167, 255, 0.16);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .example-guide__card strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .example-guide__card p {
+      margin: 0;
+      color: #dbe7f3;
+      font-size: 13px;
+      line-height: 1.85;
+    }
+
     .error {
       margin-top: 10px;
       color: #ffd1d6;
@@ -537,6 +563,20 @@
         <section class="section-card">
           <div class="section-head">
             <h3>口径示例</h3>
+          </div>
+          <div class="example-guide">
+            <div class="example-guide__card">
+              <strong>规则理解</strong>
+              <p>1、用户收到一笔钱后，系统会先生成对应的打码量任务。<br />2、例如规则是 2 倍，收到 100U，就需要先完成 200U 的交易量。<br />3、在任务完成前，这笔钱会处于限制转出状态。<br />4、任务完成后，还要看是否触发清零条件，不能简单理解为系统立刻自动清零。</p>
+            </div>
+            <div class="example-guide__card">
+              <strong>连续入账示例</strong>
+              <p>1、先收到 100U，按 2 倍规则生成 200U 的任务。<br />2、如果这 200U 已经完成，这时又新收到 1U，旧任务会先清掉。<br />3、然后按新收到的 1U 重新计算，生成 2U 的新任务。<br />4、如果旧任务还没完成，这时又新收到 1U，则新任务不会重新开始，而是直接叠加到旧任务上。</p>
+            </div>
+            <div class="example-guide__card">
+              <strong>重点记忆</strong>
+              <p>1、入账会生成任务。<br />2、交易做够了，只代表当前任务已完成。<br />3、未发生转出时，系统不一定立即清零。<br />4、真正触发清零后，下一次再有新入账，才会开始新一轮任务。</p>
+            </div>
           </div>
           <table>
             <thead>
@@ -863,11 +903,11 @@
     function renderExample() {
       const m = state.config.multiplier;
       const rows = [
-        { at: "T1", type: "转入 / 充值 / 赠金", amt: "100U", out: `新增打码量 = 100 × ${m} = 200U。` },
-        { at: "T2", type: "交易", amt: "200U", out: "交易量达到要求，未完成额为 0；未发生转出，不触发清零。"},
-        { at: "T3", type: "转入 / 赠金", amt: "1U", out: `入账时判断前一轮已满足：清零后新增打码量 = 1 × ${m} = 2U；余额全部锁定，未满足前不可转出。` },
-        { at: "T4", type: "交易", amt: "2U", out: "未完成额变为 0。"},
-        { at: "T5", type: "转出", amt: "1U", out: "转出触发清零：打码量归零、交易量计数归零；未再次入账前，剩余余额可分多次转出。"}
+        { at: "1", type: "转入 / 充值 / 赠金", amt: "100U", out: `1、先收到 100U。2、规则是 ${m} 倍。3、系统生成 ${100 * m}U 的打码量任务。4、这笔钱在任务完成前先锁定。` },
+        { at: "2", type: "交易", amt: "200U", out: "1、用户完成 200U 交易。2、当前任务刚好完成。3、未完成额变成 0。4、但因为还没有转出，所以这一轮只是完成，暂未正式清零。"},
+        { at: "3", type: "转入 / 赠金", amt: "1U", out: `1、这时又新进来 1U。2、系统先判断上一轮任务是否已完成。3、因为上一轮已完成，所以旧任务先清掉。4、再按 1 × ${m} = ${1 * m}U 生成新任务。` },
+        { at: "4", type: "交易", amt: "2U", out: "1、用户继续做 2U 交易。2、新一轮小任务完成。3、未完成额再次变成 0。4、当前状态恢复为可以转出。"},
+        { at: "5", type: "转出", amt: "1U", out: "1、用户实际发起转出。2、系统触发正式清零。3、打码量和交易量计数一起归零。4、如果后面没有新入账，剩余余额可以继续分多次转出。"}
       ];
 
       els.exampleTableBody.innerHTML = rows.map(r => `<tr><td>${r.at}</td><td>${r.type}</td><td>${r.amt}</td><td>${r.out}</td></tr>`).join("");
